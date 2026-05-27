@@ -22,7 +22,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Kron.Counting.Application\Kron.Counting.Application.csproj" />
+        <ProjectReference Include="..\Kron.Counting.Application\Kron.Counting.Application.csproj" />
     <ProjectReference Include="..\Kron.Counting.Domain\Kron.Counting.Domain.csproj" />
     <ProjectReference Include="..\Kron.Counting.Shared\Kron.Counting.Shared.csproj" />
   </ItemGroup>

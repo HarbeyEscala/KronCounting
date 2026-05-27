@@ -1,0 +1,26 @@
+using Kron.Counting.Application.DTOs.Requests;
+using Kron.Counting.Application.DTOs.Responses;
+
+namespace Kron.Counting.Application.Interfaces;
+
+public interface IDeviceService
+{
+    Task<IEnumerable<DeviceDto>> GetByStoreIdAsync(
+        Guid storeId,
+        CancellationToken cancellationToken = default);
+
+    Task<DeviceDto?> GetByIdAsync(
+        Guid id,
+        CancellationToken cancellationToken = default);
+
+    Task<Guid> CreateAsync(
+        CreateDeviceRequestDto request,
+        CancellationToken cancellationToken = default);
+
+    Task UpdateAsync(
+        Guid id,
+        UpdateDeviceRequestDto request,
+        CancellationToken cancellationToken = default);
+
+    Task DeleteAsync(Guid id, CancellationToken cancellationToken = default);
+}

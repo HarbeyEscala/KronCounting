@@ -1,81 +1,77 @@
-using AspNetCoreRateLimit;
-using FluentMigrator.Runner;
-using Kron.Counting.API.Middleware;
+using FluentValidation;
+using FluentValidation.AspNetCore;
+using Kron.Counting.API.Extensions;
 using Kron.Counting.Application.Interfaces;
+using Kron.Counting.Application.Services;
+using Kron.Counting.Application.Validators;
 using Kron.Counting.Infrastructure.Data;
-using Kron.Counting.Infrastructure.Migrations;
+using Kron.Counting.Infrastructure.Repositories;
+using Kron.Counting.Shared.Responses;
 using Kron.Counting.Shared.Settings;
+using Microsoft.AspNetCore.Mvc;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// =========================
-// Configuration bindings
-// =========================
-
-builder.Services.Configure<JwtSettings>(
-    builder.Configuration.GetSection(nameof(JwtSettings)));
-
-builder.Services.Configure<RedisSettings>(
-    builder.Configuration.GetSection(nameof(RedisSettings)));
-
-builder.Services.Configure<HangfireSettings>(
-    builder.Configuration.GetSection(nameof(HangfireSettings)));
-
 builder.Services.Configure<DatabaseSettings>(
-    builder.Configuration.GetSection(nameof(DatabaseSettings)));
-
-// =========================
-// FluentMigrator
-// =========================
-
-builder.Services
-    .AddFluentMigratorCore()
-    .ConfigureRunner(runner =>
-        runner
-            .AddSqlServer()
-            .WithGlobalConnectionString(
-                builder.Configuration["DatabaseSettings:ConnectionString"])
-            .ScanIn(typeof(Initial_Create_Brands).Assembly)
-            .For.Migrations())
-    .AddLogging(logging =>
-        logging.AddFluentMigratorConsole());
-
-// =========================
-// Infrastructure
-// =========================
-
-builder.Services.AddScoped<IDbConnectionFactory, SqlConnectionFactory>();
-
-builder.Services.AddHostedService<MigrationRunnerService>();
-
-// =========================
-// API
-// =========================
+    builder.Configuration.GetSection(DatabaseSettings.SectionName));
 
 builder.Services.AddControllers();
 
-builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddFluentValidationAutoValidation();
 
+builder.Services.AddValidatorsFromAssemblyContaining<CreateBrandValidator>();
+
+builder.Services.Configure<ApiBehaviorOptions>(options =>
+{
+    options.InvalidModelStateResponseFactory = context =>
+    {
+        var errors = context.ModelState
+            .Where(x => x.Value?.Errors.Count > 0)
+            .SelectMany(x => x.Value!.Errors)
+            .Select(x => x.ErrorMessage)
+            .ToList();
+
+        var response = new ErrorResponse
+        {
+            Message = "Validation failed",
+            Errors = errors
+        };
+
+        return new BadRequestObjectResult(response);
+    };
+});
+
+builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// =========================
-// Rate limiting
-// =========================
+#region Infrastructure
 
-builder.Services.AddMemoryCache();
+builder.Services.AddScoped<IDbConnectionFactory, SqlConnectionFactory>();
 
-builder.Services.Configure<IpRateLimitOptions>(
-    builder.Configuration.GetSection("RateLimiting"));
+builder.Services.AddScoped<IBrandRepository, BrandRepository>();
+builder.Services.AddScoped<ITenantRepository, TenantRepository>();
+builder.Services.AddScoped<IStoreRepository, StoreRepository>();
+builder.Services.AddScoped<IDeviceRepository, DeviceRepository>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IDeviceReadingRepository, DeviceReadingRepository>();
+builder.Services.AddScoped<IDashboardRepository, DashboardRepository>();
 
-builder.Services.AddInMemoryRateLimiting();
+#endregion
 
-builder.Services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
+#region Application
+
+builder.Services.AddScoped<IBrandService, BrandService>();
+builder.Services.AddScoped<ITenantService, TenantService>();
+builder.Services.AddScoped<IStoreService, StoreService>();
+builder.Services.AddScoped<IDeviceService, DeviceService>();
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
+builder.Services.AddScoped<IDashboardService, DashboardService>();
+builder.Services.AddScoped<ITelemetryService, TelemetryService>();
+
+#endregion
 
 var app = builder.Build();
-
-// =========================
-// Middleware pipeline
-// =========================
 
 if (app.Environment.IsDevelopment())
 {
@@ -83,11 +79,9 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseMiddleware<ExceptionHandlingMiddleware>();
+app.UseGlobalExceptionHandling();
 
 app.UseHttpsRedirection();
-
-app.UseIpRateLimiting();
 
 app.UseAuthorization();
 

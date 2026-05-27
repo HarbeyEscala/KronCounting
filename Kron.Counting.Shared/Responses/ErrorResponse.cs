@@ -1,13 +1,8 @@
 ﻿namespace Kron.Counting.Shared.Responses;
 
-using System;
-using System.Collections.Generic;
-using System.Text;
-public sealed class ErrorResponse
+public class ErrorResponse
 {
-    public bool Success => false;
-
-    public string Message { get; init; } = string.Empty;
-
-    public IEnumerable<string> Errors { get; init; } = [];
+    public bool Success { get; set; } = false;
+    public string Message { get; set; } = string.Empty;
+    public IEnumerable<string> Errors { get; set; } = Enumerable.Empty<string>();
 }
