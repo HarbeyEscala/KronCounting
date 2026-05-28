@@ -1,10 +1,12 @@
 using Kron.Counting.Application.DTOs.Requests;
 using Kron.Counting.Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Kron.Counting.API.Controllers;
 
 [ApiController]
+[Authorize(Roles = "Admin")]
 [Route("api/v1/brands")]
 public sealed class BrandsController : ControllerBase
 {

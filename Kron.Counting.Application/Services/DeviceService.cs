@@ -72,6 +72,7 @@ public sealed class DeviceService : IDeviceService
             SerialNumber = request.SerialNumber.Trim().ToUpperInvariant(),
             Name = request.Name.Trim(),
             DeviceType = request.DeviceType.Trim(),
+            ApiKey = Guid.NewGuid().ToString(),
             FirmwareVersion = request.FirmwareVersion?.Trim(),
             IsOnline = false,
             IsActive = true,
@@ -79,7 +80,9 @@ public sealed class DeviceService : IDeviceService
             CreatedAtUtc = DateTime.UtcNow
         };
 
-        return await _deviceRepository.CreateAsync(entity, cancellationToken);
+        return await _deviceRepository.CreateAsync(
+            entity,
+            cancellationToken);
     }
 
     public async Task UpdateAsync(
@@ -101,7 +104,9 @@ public sealed class DeviceService : IDeviceService
         existing.IsActive = request.IsActive;
         existing.UpdatedAtUtc = DateTime.UtcNow;
 
-        await _deviceRepository.UpdateAsync(existing, cancellationToken);
+        await _deviceRepository.UpdateAsync(
+            existing,
+            cancellationToken);
     }
 
     public async Task DeleteAsync(
@@ -116,6 +121,8 @@ public sealed class DeviceService : IDeviceService
         if (existing is null)
             throw new KeyNotFoundException("Device not found.");
 
-        await _deviceRepository.SoftDeleteAsync(id, cancellationToken);
+        await _deviceRepository.SoftDeleteAsync(
+            id,
+            cancellationToken);
     }
 }

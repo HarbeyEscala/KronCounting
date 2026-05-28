@@ -10,11 +10,25 @@ public class UpdateTenantValidator : AbstractValidator<UpdateTenantRequestDto>
         RuleFor(x => x.Name)
             .NotEmpty()
             .WithMessage("Name is required")
-            .MaximumLength(100)
-            .WithMessage("Name cannot exceed 100 characters");
+            .MaximumLength(200)
+            .WithMessage("Name cannot exceed 200 characters");
 
-        RuleFor(x => x.Description)
-            .MaximumLength(500)
-            .WithMessage("Description cannot exceed 500 characters");
+        RuleFor(x => x.TimeZone)
+            .NotEmpty()
+            .WithMessage("TimeZone is required")
+            .MaximumLength(100)
+            .WithMessage("TimeZone cannot exceed 100 characters");
+
+        RuleFor(x => x.Currency)
+            .NotEmpty()
+            .WithMessage("Currency is required")
+            .MaximumLength(10)
+            .WithMessage("Currency cannot exceed 10 characters");
+
+        RuleFor(x => x.Locale)
+            .NotEmpty()
+            .WithMessage("Locale is required")
+            .MaximumLength(20)
+            .WithMessage("Locale cannot exceed 20 characters");
     }
 }

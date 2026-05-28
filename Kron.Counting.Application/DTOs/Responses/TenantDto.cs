@@ -10,7 +10,11 @@ public sealed class TenantDto
 
     public string Name { get; set; } = default!;
 
-    public string? Description { get; set; }
+    public string TimeZone { get; set; } = default!;
+
+    public string Currency { get; set; } = default!;
+
+    public string Locale { get; set; } = default!;
 
     public bool IsActive { get; set; }
 

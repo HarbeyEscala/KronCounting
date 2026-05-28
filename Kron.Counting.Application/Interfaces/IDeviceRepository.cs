@@ -20,5 +20,9 @@ public interface IDeviceRepository
         bool isOnline,
         CancellationToken cancellationToken = default);
 
+    Task<Device?> GetByApiKeyAsync(
+    string apiKey,
+    CancellationToken cancellationToken = default);
+
     Task SoftDeleteAsync(Guid id, CancellationToken cancellationToken = default);
 }

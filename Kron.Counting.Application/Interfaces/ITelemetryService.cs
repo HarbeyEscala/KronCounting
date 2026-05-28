@@ -1,10 +1,11 @@
-using Kron.Counting.Application.DTOs.Responses;
+using Kron.Counting.Application.DTOs.Requests;
 
 namespace Kron.Counting.Application.Interfaces;
 
 public interface ITelemetryService
 {
     Task<long> IngestReadingAsync(
-        DeviceReadingDto dto,
+        Guid deviceId,
+        IngestCounterSnapshotRequestDto request,
         CancellationToken cancellationToken = default);
 }

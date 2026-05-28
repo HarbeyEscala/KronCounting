@@ -12,6 +12,8 @@ public sealed class Device
 
     public string DeviceType { get; set; } = default!;
 
+    public string ApiKey { get; set; } = default!;
+
     public string? FirmwareVersion { get; set; }
 
     public DateTime? LastSeenAtUtc { get; set; }
@@ -19,6 +21,10 @@ public sealed class Device
     public bool IsOnline { get; set; }
 
     public bool IsActive { get; set; }
+
+    public int LastTotalIn { get; set; }
+
+    public int LastTotalOut { get; set; }
 
     public bool IsDeleted { get; set; }
 

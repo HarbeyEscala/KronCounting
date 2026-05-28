@@ -14,8 +14,6 @@ public sealed class DeviceReading
 
     public int Occupancy { get; set; }
 
-    public decimal? ConfidenceScore { get; set; }
-
     public string? RawPayloadJson { get; set; }
 
     public DateTime CreatedAtUtc { get; set; }

@@ -71,13 +71,17 @@ public sealed class TenantService : ITenantService
             BrandId = request.BrandId,
             Code = request.Code.Trim().ToUpperInvariant(),
             Name = request.Name.Trim(),
-            Description = request.Description?.Trim(),
+            TimeZone = request.TimeZone.Trim(),
+            Currency = request.Currency.Trim().ToUpperInvariant(),
+            Locale = request.Locale.Trim(),
             IsActive = true,
             IsDeleted = false,
             CreatedAtUtc = DateTime.UtcNow
         };
 
-        return await _tenantRepository.CreateAsync(entity, cancellationToken);
+        return await _tenantRepository.CreateAsync(
+            entity,
+            cancellationToken);
     }
 
     public async Task UpdateAsync(
@@ -94,11 +98,15 @@ public sealed class TenantService : ITenantService
             throw new KeyNotFoundException("Tenant not found.");
 
         existing.Name = request.Name.Trim();
-        existing.Description = request.Description?.Trim();
+        existing.TimeZone = request.TimeZone.Trim();
+        existing.Currency = request.Currency.Trim().ToUpperInvariant();
+        existing.Locale = request.Locale.Trim();
         existing.IsActive = request.IsActive;
         existing.UpdatedAtUtc = DateTime.UtcNow;
 
-        await _tenantRepository.UpdateAsync(existing, cancellationToken);
+        await _tenantRepository.UpdateAsync(
+            existing,
+            cancellationToken);
     }
 
     public async Task DeleteAsync(
@@ -113,6 +121,8 @@ public sealed class TenantService : ITenantService
         if (existing is null)
             throw new KeyNotFoundException("Tenant not found.");
 
-        await _tenantRepository.SoftDeleteAsync(id, cancellationToken);
+        await _tenantRepository.SoftDeleteAsync(
+            id,
+            cancellationToken);
     }
 }

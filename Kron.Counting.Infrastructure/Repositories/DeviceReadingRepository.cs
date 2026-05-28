@@ -25,7 +25,6 @@ public sealed class DeviceReadingRepository : IDeviceReadingRepository
                 PeopleIn,
                 PeopleOut,
                 Occupancy,
-                ConfidenceScore,
                 RawPayloadJson,
                 CreatedAtUtc
             )
@@ -36,7 +35,6 @@ public sealed class DeviceReadingRepository : IDeviceReadingRepository
                 @PeopleIn,
                 @PeopleOut,
                 @Occupancy,
-                @ConfidenceScore,
                 @RawPayloadJson,
                 @CreatedAtUtc
             );
@@ -63,7 +61,6 @@ public sealed class DeviceReadingRepository : IDeviceReadingRepository
                 PeopleIn,
                 PeopleOut,
                 Occupancy,
-                ConfidenceScore,
                 RawPayloadJson,
                 CreatedAtUtc
             FROM dbo.DeviceReadings

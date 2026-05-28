@@ -26,7 +26,9 @@ public static class DomainToDtoMappings
             BrandId = entity.BrandId,
             Code = entity.Code,
             Name = entity.Name,
-            Description = entity.Description,
+            TimeZone = entity.TimeZone,
+            Currency = entity.Currency,
+            Locale = entity.Locale,
             IsActive = entity.IsActive,
             CreatedAtUtc = entity.CreatedAtUtc
         };
@@ -77,22 +79,6 @@ public static class DomainToDtoMappings
             LastSeenAtUtc = entity.LastSeenAtUtc,
             IsOnline = entity.IsOnline,
             IsActive = entity.IsActive,
-            CreatedAtUtc = entity.CreatedAtUtc
-        };
-    }
-
-    public static DeviceReadingDto ToDto(this DeviceReading entity)
-    {
-        return new DeviceReadingDto
-        {
-            Id = entity.Id,
-            DeviceId = entity.DeviceId,
-            ReadingTimestampUtc = entity.ReadingTimestampUtc,
-            PeopleIn = entity.PeopleIn,
-            PeopleOut = entity.PeopleOut,
-            Occupancy = entity.Occupancy,
-            ConfidenceScore = entity.ConfidenceScore,
-            RawPayloadJson = entity.RawPayloadJson,
             CreatedAtUtc = entity.CreatedAtUtc
         };
     }

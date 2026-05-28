@@ -112,6 +112,40 @@ public sealed class UserRepository : IUserRepository
                 Email = email
             });
     }
+    //PETICION GLOBAL ::)
+    public async Task<User?> GetByGlobalEmailAsync(
+        string email,
+        CancellationToken cancellationToken = default)
+        {
+            const string sql = """
+            SELECT
+                Id,
+                TenantId,
+                Email,
+                FirstName,
+                LastName,
+                PasswordHash,
+                Role,
+                IsActive,
+                IsDeleted,
+                LastLoginUtc,
+                CreatedAtUtc,
+                UpdatedAtUtc,
+                DeletedAtUtc
+            FROM dbo.Users
+            WHERE Email = @Email
+              AND IsDeleted = 0;
+        """;
+
+            using var connection = _connectionFactory.CreateConnection();
+
+            return await connection.QueryFirstOrDefaultAsync<User>(
+                sql,
+                new
+                {
+                    Email = email.Trim().ToLower()
+                });
+        }
 
     public async Task<Guid> CreateAsync(
         User user,

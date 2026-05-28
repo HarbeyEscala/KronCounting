@@ -24,6 +24,7 @@ public sealed class DeviceRepository : IDeviceRepository
                 SerialNumber,
                 Name,
                 DeviceType,
+                ApiKey,
                 FirmwareVersion,
                 LastSeenAtUtc,
                 IsOnline,
@@ -56,6 +57,7 @@ public sealed class DeviceRepository : IDeviceRepository
                 SerialNumber,
                 Name,
                 DeviceType,
+                ApiKey,
                 FirmwareVersion,
                 LastSeenAtUtc,
                 IsOnline,
@@ -76,6 +78,38 @@ public sealed class DeviceRepository : IDeviceRepository
             new { Id = id });
     }
 
+    public async Task<Device?> GetByApiKeyAsync(
+        string apiKey,
+        CancellationToken cancellationToken = default)
+    {
+        const string sql = """
+            SELECT
+                Id,
+                StoreId,
+                SerialNumber,
+                Name,
+                DeviceType,
+                ApiKey,
+                FirmwareVersion,
+                LastSeenAtUtc,
+                IsOnline,
+                IsActive,
+                IsDeleted,
+                CreatedAtUtc,
+                UpdatedAtUtc,
+                DeletedAtUtc
+            FROM dbo.Devices
+            WHERE ApiKey = @ApiKey
+              AND IsDeleted = 0;
+        """;
+
+        using var connection = _connectionFactory.CreateConnection();
+
+        return await connection.QueryFirstOrDefaultAsync<Device>(
+            sql,
+            new { ApiKey = apiKey });
+    }
+
     public async Task<Device?> GetBySerialNumberAsync(
         Guid storeId,
         string serialNumber,
@@ -88,6 +122,7 @@ public sealed class DeviceRepository : IDeviceRepository
                 SerialNumber,
                 Name,
                 DeviceType,
+                ApiKey,
                 FirmwareVersion,
                 LastSeenAtUtc,
                 IsOnline,
@@ -125,6 +160,9 @@ public sealed class DeviceRepository : IDeviceRepository
                 SerialNumber,
                 Name,
                 DeviceType,
+                ApiKey,
+                LastTotalIn,
+                LastTotalOut,
                 FirmwareVersion,
                 LastSeenAtUtc,
                 IsOnline,
@@ -139,6 +177,9 @@ public sealed class DeviceRepository : IDeviceRepository
                 @SerialNumber,
                 @Name,
                 @DeviceType,
+                @ApiKey,
+                @LastTotalIn,
+                @LastTotalOut,
                 @FirmwareVersion,
                 @LastSeenAtUtc,
                 @IsOnline,
@@ -158,23 +199,25 @@ public sealed class DeviceRepository : IDeviceRepository
     public async Task UpdateAsync(
         Device device,
         CancellationToken cancellationToken = default)
-    {
-        const string sql = """
+        {
+            const string sql = """
             UPDATE dbo.Devices
             SET
                 Name = @Name,
                 DeviceType = @DeviceType,
                 FirmwareVersion = @FirmwareVersion,
+                LastTotalIn = @LastTotalIn,
+                LastTotalOut = @LastTotalOut,
                 IsActive = @IsActive,
                 UpdatedAtUtc = @UpdatedAtUtc
             WHERE Id = @Id
               AND IsDeleted = 0;
         """;
 
-        using var connection = _connectionFactory.CreateConnection();
+            using var connection = _connectionFactory.CreateConnection();
 
-        await connection.ExecuteAsync(sql, device);
-    }
+            await connection.ExecuteAsync(sql, device);
+        }
 
     public async Task UpdateHeartbeatAsync(
         Guid id,

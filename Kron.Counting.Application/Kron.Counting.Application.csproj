@@ -17,9 +17,4 @@
     <ProjectReference Include="..\Kron.Counting.Shared\Kron.Counting.Shared.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="DTOs\Responses\" />
-    <Folder Include="DTOs\Requests\" />
-  </ItemGroup>
-
 </Project>

@@ -1,4 +1,4 @@
-using Kron.Counting.Application.DTOs.Responses;
+using Kron.Counting.Application.DTOs.Requests;
 using Kron.Counting.Application.Interfaces;
 using Kron.Counting.Domain.Entities;
 
@@ -21,12 +21,13 @@ public sealed class TelemetryService : ITelemetryService
     }
 
     public async Task<long> IngestReadingAsync(
-        DeviceReadingDto dto,
+        Guid deviceId,
+        IngestCounterSnapshotRequestDto request,
         CancellationToken cancellationToken = default)
     {
         var device =
             await _deviceRepository.GetByIdAsync(
-                dto.DeviceId,
+                deviceId,
                 cancellationToken);
 
         if (device is null)
@@ -35,15 +36,41 @@ public sealed class TelemetryService : ITelemetryService
         if (!device.IsActive || device.IsDeleted)
             throw new InvalidOperationException("Device is inactive.");
 
+        /*
+         * TEMPORAL MVP LOGIC
+         *
+         * CHP015 real probablemente envía contadores acumulados.
+         *
+         * Más adelante:
+         *
+         * deltaIn  = request.TotalIn  - device.LastTotalIn
+         * deltaOut = request.TotalOut - device.LastTotalOut
+         *
+         * Por ahora:
+         * usamos valores directos para mantener pipeline vivo.
+         */
+
+        var peopleIn =
+            request.TotalIn - device.LastTotalIn;
+
+        var peopleOut =
+            request.TotalOut - device.LastTotalOut;
+
+        if (peopleIn < 0)
+            peopleIn = 0;
+
+        if (peopleOut < 0)
+            peopleOut = 0;
+
         var reading = new DeviceReading
         {
-            DeviceId = dto.DeviceId,
-            ReadingTimestampUtc = dto.ReadingTimestampUtc,
-            PeopleIn = dto.PeopleIn,
-            PeopleOut = dto.PeopleOut,
-            Occupancy = dto.Occupancy,
-            ConfidenceScore = dto.ConfidenceScore,
-            RawPayloadJson = dto.RawPayloadJson,
+            DeviceId = deviceId,
+            ReadingTimestampUtc = request.ReadingTimestampUtc,
+            PeopleIn = peopleIn,
+            PeopleOut = peopleOut,
+            Occupancy = Math.Max(0, peopleIn - peopleOut),
+            RawPayloadJson =
+                System.Text.Json.JsonSerializer.Serialize(request),
             CreatedAtUtc = DateTime.UtcNow
         };
 
@@ -53,7 +80,7 @@ public sealed class TelemetryService : ITelemetryService
                 cancellationToken);
 
         await _deviceRepository.UpdateHeartbeatAsync(
-            dto.DeviceId,
+            deviceId,
             DateTime.UtcNow,
             true,
             cancellationToken);
@@ -63,30 +90,41 @@ public sealed class TelemetryService : ITelemetryService
                 device.StoreId,
                 cancellationToken);
 
+        var occupancy =
+            Math.Max(0, peopleIn - peopleOut);
+
         if (snapshot is null)
         {
             snapshot = new LiveDashboardSnapshot
             {
                 Id = Guid.NewGuid(),
                 StoreId = device.StoreId,
-                CurrentOccupancy = dto.Occupancy,
-                TodayIn = dto.PeopleIn,
-                TodayOut = dto.PeopleOut,
-                LastReadingAtUtc = dto.ReadingTimestampUtc,
+                CurrentOccupancy = occupancy,
+                TodayIn = peopleIn,
+                TodayOut = peopleOut,
+                LastReadingAtUtc = request.ReadingTimestampUtc,
                 UpdatedAtUtc = DateTime.UtcNow
             };
         }
         else
         {
-            snapshot.CurrentOccupancy = dto.Occupancy;
-            snapshot.TodayIn += dto.PeopleIn;
-            snapshot.TodayOut += dto.PeopleOut;
-            snapshot.LastReadingAtUtc = dto.ReadingTimestampUtc;
+            snapshot.CurrentOccupancy = occupancy;
+            snapshot.TodayIn += peopleIn;
+            snapshot.TodayOut += peopleOut;
+            snapshot.LastReadingAtUtc = request.ReadingTimestampUtc;
             snapshot.UpdatedAtUtc = DateTime.UtcNow;
         }
 
         await _dashboardRepository.UpsertSnapshotAsync(
             snapshot,
+            cancellationToken);
+
+        device.LastTotalIn = request.TotalIn;
+        device.LastTotalOut = request.TotalOut;
+        device.UpdatedAtUtc = DateTime.UtcNow;
+
+        await _deviceRepository.UpdateAsync(
+            device,
             cancellationToken);
 
         return readingId;
