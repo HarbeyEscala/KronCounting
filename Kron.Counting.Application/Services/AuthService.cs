@@ -23,8 +23,11 @@ public sealed class AuthService : IAuthService
         var user = await _userRepository.GetByGlobalEmailAsync(
             request.Email);
 
+        Console.WriteLine($"LOGIN EMAIL: {request.Email}");
+        Console.WriteLine(user is null ? "USER NOT FOUND" : $"USER FOUND: {user.Email}");
         if (user is null)
         {
+            
             throw new UnauthorizedAccessException("Invalid credentials.");
         }
 
@@ -37,6 +40,7 @@ public sealed class AuthService : IAuthService
             request.Password,
             user.PasswordHash);
 
+        Console.WriteLine($"PASSWORD VALID: {passwordValid}");
         if (!passwordValid)
         {
             throw new UnauthorizedAccessException("Invalid credentials.");
